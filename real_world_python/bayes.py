@@ -1,4 +1,3 @@
-from re import L
 import sys #commands for the operating system
 import random
 import itertools
