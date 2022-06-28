@@ -30,7 +30,7 @@ def main():
 def text_to_string(filename):
     """ Read a text file and return a string """
     #use with to keep the file open only for this context
-    with open(filename) as infile:
+    with open(filename, encoding = 'utf-8') as infile:
         # return read file and close contest
         return infile.read() 
 
@@ -84,7 +84,7 @@ def word_length_test(words_by_author, len_shortest_corpus):
     #display legend
     plt.legend()
     #show the plot
-    #plt.show()
+    plt.show(block=True)
 
 def stop_words_test(words_by_author, len_shortest_corpus):
     """ Plot stopwords freq by author, truncated to shortest corpus length """
@@ -102,7 +102,7 @@ def stop_words_test(words_by_author, len_shortest_corpus):
         # plot the frequency
         stopwords_by_author_freq_dist[author].plot(50, label=author, linestyle=LINES[i], title = '50 most common stopwords')
     plt.legend()
-    #plt.show()
+    plt.show(block=True)
 
 def parts_of_speech_test(words_by_author, len_shortest_corpus):
     """" Plot author use of parts-of-speech """
@@ -113,7 +113,7 @@ def parts_of_speech_test(words_by_author, len_shortest_corpus):
         by_author_pos_freq[author] = nltk.FreqDist(pos_by_author)
         by_author_pos_freq[author].plot(35, label=author, linestyle=LINES[i], title = 'Parts of Speech')
     plt.legend()
-    plt.show()
+    plt.show(block=True)
 
 def vocab_test(words_by_author):
     """" Compare author vocabularies using chi^2 statistical test """
@@ -140,3 +140,24 @@ def vocab_test(words_by_author):
     most_likely_author = min(chisquared_by_author, key=chisquared_by_author.get)
     print('Most-likely author by vocabulary is {}\n'.format(most_likely_author))
 
+def jaccard_test(words_by_author, len_shortest_corpus):
+    """ Calculate Jaccard similarity of each known corpus to unknown corpus """
+    jaccard_by_author = dict()
+    #jaccard only needs unique words, use set to filter
+    unique_words_unknown = set(words_by_author['unknown'][:len_shortest_corpus])
+    # a generator expression is filter out only the known authors; saves on memory space
+    authors = (author for author in words_by_author if author != 'unknown')
+    for author in authors:
+        unique_words_author = set(words_by_author[author][:len_shortest_corpus])
+        #all the shared words are in the intersection of the unique words for each author
+        shared_words = unique_words_author.intersection(unique_words_unknown)
+        #calculate similarity
+        jaccard_sim = (float(len(shared_words))) / (len(unique_words_author)+len(unique_words_unknown)+len(shared_words))
+        jaccard_by_author[author] = jaccard_sim
+        print(f"Jaccard similarity for {author} = {jaccard_sim}")
+    #most similary author is the most likely.
+    most_likely_author = max(jaccard_by_author, key = jaccard_by_author.get)
+    print(f"Most likely author by similarity is {most_likely_author}")
+
+if __name__ == '__main__':
+    main()
